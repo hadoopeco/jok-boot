@@ -1,0 +1,2 @@
+logTraceConsumer=com.jokls.jok.rpc.def.trace.TraceConsumerFilter
+logTraceProvider=com.jokls.jok.rpc.def.trace.TraceProviderFilter

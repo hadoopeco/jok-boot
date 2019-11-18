@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.jokls.jok.common.config.CloudAutoConfiguration
+org.springframework.boot.env.EnvironmentPostProcessor=\
+com.jokls.jok.common.util.ConfigUtils,\
+com.jokls.jok.common.config.CloudBootstrapConfiguration
