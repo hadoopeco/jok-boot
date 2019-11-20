@@ -2,9 +2,9 @@ package com.jokls.jok.rpc.def.trace;
 
 import com.jokls.jok.common.exception.BaseException;
 import com.jokls.jok.common.trace.TraceInfo;
+import com.jokls.jok.common.util.*;
 import com.jokls.jok.rpc.async.AsyncFuture;
 import com.jokls.jok.rpc.def.asyn.DefaultAsyncFuture;
-import com.jokls.jok.common.util.*;
 import org.apache.dubbo.common.extension.Activate;
 import org.apache.dubbo.monitor.MonitorService;
 import org.apache.dubbo.rpc.*;
@@ -30,7 +30,7 @@ public class TraceProviderFilter implements Filter {
         Map<String, String> attachments = invocation.getAttachments();
         String debugType = attachments.get("invoke.debugType");
         Result result;
-        if(MonitorService.class.getName().equals(invoker.getInterface().getName()) || !Boolean.TRUE.equals(ConfigUtils.isTraceLog()) && "1".equals(debugType)){
+        if(!Boolean.TRUE.equals(ConfigUtils.isTraceLog()) && "1".equals(debugType)){
             result = invoker.invoke(invocation);
         }else {
             boolean canTrace = true;

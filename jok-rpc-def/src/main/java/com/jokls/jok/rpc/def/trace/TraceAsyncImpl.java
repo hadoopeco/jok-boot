@@ -2,6 +2,7 @@ package com.jokls.jok.rpc.def.trace;
 
 import com.jokls.jok.common.exception.BaseException;
 import com.jokls.jok.common.trace.TraceInfo;
+import com.jokls.jok.rpc.def.config.spring.AnnotationBean;
 import com.jokls.jok.rpc.def.util.RpcUtils;
 import com.jokls.jok.common.util.*;
 import org.apache.dubbo.rpc.Invocation;
@@ -12,6 +13,7 @@ import org.springframework.scheduling.annotation.Async;
 
 public class TraceAsyncImpl implements ITraceAsync {
     private static final Logger logger = LoggerFactory.getLogger(TraceAsyncImpl.class);
+    public static final String JOK_SVR = "jok-svr";
 
     @Async("traceTaskExecutor")
     public void logConsumerAsync(TraceInfo newTrace, String depotId, BaseException baseException, byte[] msgBody, String charset) {
@@ -45,12 +47,16 @@ public class TraceAsyncImpl implements ITraceAsync {
         newTrace.setName(ConfigUtils.getAppName());
         newTrace.setServerName(RpcUtils.getFunctionName(invoker, invocation));
         newTrace.setIp(NetUtils.getLocalHost());
-        newTrace.setAppType("jres-svr");
+        newTrace.setAppType(JOK_SVR);
         newTrace.setSpanType("1");
         newTrace.setModuleType("CS");
 
-//        if("utf-8".equalsIgnoreCase(invoker.getUrl().getParameter("charset", AnnotationBean.getTransCharset()).trim()));
-        newTrace.setCharset("0");
+        String transCharset = invoker.getUrl().getParameter("charset", AnnotationBean.getTransCharset()).trim();
+        if("utf-8".equalsIgnoreCase(transCharset)) {
+            newTrace.setCharset("0");
+        }else {
+            newTrace.setCharset("1");
+        }
 
 
         if(!isAsync){
@@ -69,7 +75,7 @@ public class TraceAsyncImpl implements ITraceAsync {
             }
         }
 
-        logger.info(newTrace.toString());
+        logger.info("logConsumer -{}",newTrace.toString());
     }
 
     @Async("traceTaskExecutor")
@@ -79,7 +85,7 @@ public class TraceAsyncImpl implements ITraceAsync {
         newTrace.setServerName(RpcUtils.getFunctionName(invoker, invocation));
         newTrace.setIp(NetUtils.getLocalHost());
         newTrace.setModuleType("SR");
-        newTrace.setAppType("jres-svr");
+        newTrace.setAppType(JOK_SVR);
         newTrace.setSpanType("1");
 
 
@@ -97,7 +103,7 @@ public class TraceAsyncImpl implements ITraceAsync {
             newTrace.setResponseStatus("0");
         }
 
-        logger.info(newTrace.toString());
+        logger.info("logProvider - {}" , newTrace.toString());
 
     }
 }

@@ -93,9 +93,10 @@ public class RpcAutoConfiguration {
         protocolConfig.setCharset(ConfigUtils.get("rpc.protocol.charset", "utf-8"));
         protocolConfig.setCorethreads(ConfigUtils.get("rpc.protocol.corethreads", Integer.class, 300));
 //        protocolConfig.setAlive((Integer)ConfigUtils.get("rpc.protocol.alive", Integer.class, 60000));
-        if (protocolConfig.getPort() == null) {
-            protocolConfig.setPort(NetUtils.getAvailablePort());
-        }
+
+
+        protocolConfig.setPort(ConfigUtils.get("rpc.protocol.port",Integer.class, 20880));
+
 
         return protocolConfig;
     }
