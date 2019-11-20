@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/index")
 public class IndexController {
+//    @CloudReference(service = "testService")
+//    ITestService iTestService;
 
     @RequestMapping("")
     @ResponseBody

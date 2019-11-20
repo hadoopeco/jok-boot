@@ -16,7 +16,7 @@ public class RpcUtilsTest {
 
     @Test
     public void postMockServer(){
-        String rs = RpcUtils.postMockServer("http://dev-www.hljinke.com:9000","{t:tt}");
+        String rs = RpcUtils.postMockServer("http://127.0.0.1:9000","{t:tt}");
         System.out.printf(""+rs);
     }
 

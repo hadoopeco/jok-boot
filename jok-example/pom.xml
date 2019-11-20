@@ -30,9 +30,41 @@
 <!--        </dependency>-->
         <dependency>
             <groupId>com.jokls.jok</groupId>
-            <artifactId>jok-starter-mybatis</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <artifactId>jok-rpc-monitor</artifactId>
+            <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.jokls.jok</groupId>
+            <artifactId>jok-starter-mybatis</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+
+        <!--fix issue cause of  dubbo upgrate : java.lang.ClassNotFoundException: org.apache.curator.framework.recipes.cache.TreeCacheListener-->
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                    <groupId>org.springframework.boot</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+
+
         <!-- https://mvnrepository.com/artifact/com.oracle.ojdbc/ojdbc8 -->
         <dependency>
             <groupId>com.oracle.ojdbc</groupId>

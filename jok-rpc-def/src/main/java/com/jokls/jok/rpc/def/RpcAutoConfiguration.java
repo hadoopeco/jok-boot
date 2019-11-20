@@ -42,9 +42,16 @@ public class RpcAutoConfiguration {
     @Bean
     @DependsOn({"springUtils", "serviceDefinitionUtil"})
     public static AnnotationBean annotationBean(){
-        String consumerFilters = ConfigUtils.get("rpc.consumer.filters");
-        String providerFilters = ConfigUtils.get("rpc.provider.filters");
+        String consumerFilters = ConfigUtils.get("rpc.consumer.filters","");
+        String providerFilters = ConfigUtils.get("rpc.provider.filters","");
         return new AnnotationBean(COMMA_SPLIT_PATTERN.split(consumerFilters), COMMA_SPLIT_PATTERN.split(providerFilters), ConfigUtils.get("rpc.protocol.charset", "utf-8"), ConfigUtils.get("rpc.provider.singleMode", Boolean.class, true));
+    }
+
+    @Bean
+    public IRpcProxyFactory rpcProxyFactory(ApplicationConfig application, RegistryConfig registry, ProtocolConfig protocol, ConsumerConfig consumer) {
+        String consumerFilters = ConfigUtils.get("rpc.consumer.filters","");
+        String providerFilters = ConfigUtils.get("rpc.provider.filters","");
+        return new RpcProxyFactoryImpl(COMMA_SPLIT_PATTERN.split(consumerFilters), COMMA_SPLIT_PATTERN.split(providerFilters), application, registry, protocol, consumer, ConfigUtils.get("rpc.proxy.invokeAll", Boolean.class, false));
     }
 
     @Bean
@@ -122,12 +129,7 @@ public class RpcAutoConfiguration {
         return consumerConfig;
     }
 
-    @Bean
-    public IRpcProxyFactory rpcProxyFactory(ApplicationConfig application, RegistryConfig registry, ProtocolConfig protocol, ConsumerConfig consumer) {
-        String consumerFilters = ConfigUtils.get("rpc.consumer.filters");
-        String providerFilters = ConfigUtils.get("rpc.provider.filters");
-        return new RpcProxyFactoryImpl(consumerFilters == null ? null : COMMA_SPLIT_PATTERN.split(consumerFilters), providerFilters == null ? null : COMMA_SPLIT_PATTERN.split(providerFilters), application, registry, protocol, consumer, (Boolean)ConfigUtils.get("rpc.proxy.invokeAll", Boolean.class, false));
-    }
+
 
     @Bean
     public ServiceDefinitionUtil serviceDefinitionUtil() {

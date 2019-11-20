@@ -36,11 +36,14 @@ import static org.apache.dubbo.config.spring.util.BeanFactoryUtils.addApplicatio
 /**
  * ServiceFactoryBean
  *
+ *
+ * dubbo service export
+ * <dubbo:service interface=""  ref=""/>
  * @export
  */
+
 public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean, DisposableBean,
         ApplicationContextAware, ApplicationListener<ContextRefreshedEvent>, BeanNameAware{
-//        ApplicationEventPublisherAware {
 
 
     private static final long serialVersionUID = 213195494150089726L;

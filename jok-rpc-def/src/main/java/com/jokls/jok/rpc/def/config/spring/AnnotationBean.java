@@ -63,7 +63,7 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
-        this.serviceConfigs.stream().filter(ServiceConfig::isRegister).forEach(ServiceConfig::export);
+        this.serviceConfigs.stream().filter( s ->  Boolean.TRUE.equals(s.isRegister())).forEach(ServiceConfig::export);
     }
 
 
@@ -111,7 +111,7 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
             sb.append(filterstr);
 
             ServiceBean serviceConfig = new ServiceBean(service);
-//            serviceConfig.setFilters(sb.toString());
+            serviceConfig.setFilter(sb.toString());
 //            serviceConfig.setOpenApi(service.openApi());
             serviceConfig.setValidation(service.validation()? "true":null);
 
@@ -143,9 +143,8 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
             }
 
 
-//            :todo: not isRegistryAfterSpring method
             this.serviceConfigs.add(serviceConfig);
-            if(!serviceConfig.isRegister()){
+            if( !Boolean.TRUE.equals(serviceConfig.isRegister())){
                 serviceConfig.export();
             }
 //            if (!serviceConfig.isRegistryAfterSpring()) {

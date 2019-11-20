@@ -21,7 +21,6 @@ import org.springframework.beans.factory.InitializingBean;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -42,12 +41,14 @@ public class RpcProxyFactoryImpl implements IRpcProxyFactory, InitializingBean, 
     // dubbo:consumer 消费配置
     //<dubbo:consumer generic="false" check="false" lazy="false" timeout="30000" retries="0" />
     private ConsumerConfig consumer;
+
+    private RegistryService registryService;
+
     public static final String SERVICE_FILTER_KEY = ".service";
     private static String DEFAULT_TRANS_CHARSET = "UTF-8";
     private static final URL SUBSCRIBE = new URL("admin", NetUtils.getLocalHost(), 0, "", "interface", "*", "group", "*", "version", "*", "classifier", "*", "category", "providers,consumers,routers,configurators", "enabled", "*", "check", String.valueOf(false));
     private final ConcurrentHashMap<String, Map<String, Map<Long, URL>>> registryCache = new ConcurrentHashMap<>();
     private static final AtomicLong ID = new AtomicLong();
-    private RegistryService registryService;
 
     public RpcProxyFactoryImpl(String[] consumerFilters, String[] providerFilters, ApplicationConfig application, RegistryConfig registry, ProtocolConfig protocol, ConsumerConfig consumer, boolean invokeAll) {
         this.consumerFilters = consumerFilters;
@@ -56,6 +57,7 @@ public class RpcProxyFactoryImpl implements IRpcProxyFactory, InitializingBean, 
         this.registry = registry;
         this.protocol = protocol;
         this.consumer = consumer;
+
         if (invokeAll) {
             this.registryService = this.proxyInvoke(RegistryService.class);
         }
@@ -310,7 +312,7 @@ public class RpcProxyFactoryImpl implements IRpcProxyFactory, InitializingBean, 
             for (URL url : urls) {
                 String category = url.getParameter("category", "providers");
                 if ("empty".equalsIgnoreCase(url.getProtocol())) {
-                    ConcurrentMap<String, Map<Long, URL>> services = (ConcurrentMap<String, Map<Long, URL>>) this.registryCache.get(category);
+                    Map<String, Map<Long, URL>> services = this.registryCache.get(category);
                     if (services != null) {
                         String group = url.getParameter("group");
                         String version = url.getParameter("version");
@@ -343,7 +345,7 @@ public class RpcProxyFactoryImpl implements IRpcProxyFactory, InitializingBean, 
 
             for (Map.Entry<String, Map<String, Map<Long, URL>>> categoryEntry : categories.entrySet()) {
                 String category = categoryEntry.getKey();
-                ConcurrentMap<String, Map<Long, URL>> services = (ConcurrentMap<String, Map<Long, URL>>) this.registryCache.get(category);
+                Map<String, Map<Long, URL>> services = this.registryCache.get(category);
 
                 if (services == null) {
                     services = new ConcurrentHashMap<>();
@@ -353,109 +355,17 @@ public class RpcProxyFactoryImpl implements IRpcProxyFactory, InitializingBean, 
             }
         }
     }
-// 修改前
-//    public void notify(List<URL> urls) {
-//        if(urls != null && !urls.isEmpty()){
-//            Map<String, Map<String, Map<Long,URL>>> categories = new HashMap<>();
-//
-//
-////            for(URL url : urls){
-////                String category = url.getParameter("category", "providers");
-////
-////                if("empty".equalsIgnoreCase(url.getProtocol())){
-////                    services = this.registryCache.get(category);
-////                }
-////            }
-//            Iterator var3 = urls.iterator();
-//            Map<String, Map<Long, URL>> services;
-//
-//            while(true) {
-//                label81:
-//                while(true) {
-//                    URL url;
-//                    String group;
-////                    ConcurrentMap services;
-//                    label55:
-//                    do {
-//                        String category;
-//                        Object ids;
-//                        for(; var3.hasNext(); ((Map)ids).put(ID.incrementAndGet(), url)) {
-//                            url = (URL)var3.next();
-//                            category = url.getParameter("category", "providers");
-//                            if ("empty".equalsIgnoreCase(url.getProtocol())) {
-//                                services = this.registryCache.get(category);
-//                                continue label55;
-//                            }
-//
-//                            services = categories.get(category);
-//                            if (services == null) {
-//                                services = new HashMap<>();
-//                                categories.put(category, services);
-//                            }
-//
-//                            group = url.getServiceKey();
-//                            ids = ((Map)services).get(group);
-//                            if (ids == null) {
-//                                ids = new HashMap();
-//                                ((Map)services).put(group, ids);
-//                            }
-//                        }
-//
-//                        Entry categoryEntry;
-//                        for(var3 = categories.entrySet().iterator(); var3.hasNext(); services.putAll((Map)categoryEntry.getValue())) {
-//                            categoryEntry = (Entry)var3.next();
-//                            category = (String)categoryEntry.getKey();
-//                            services = this.registryCache.get(category);
-//                            if (services == null) {
-//                                services = new ConcurrentHashMap();
-//                                this.registryCache.put(category, services);
-//                            }
-//                        }
-//
-//                        return;
-//                    } while(services == null);
-//
-//                    group = url.getParameter("group");
-//                    String version = url.getParameter("version");
-//                    if (!"*".equals(group) && !"*".equals(version)) {
-//                        services.remove(url.getServiceKey());
-//                    } else {
-//                        Iterator var9 = services.entrySet().iterator();
-//
-//                        while(true) {
-//                            String service;
-//                            do {
-//                                do {
-//                                    do {
-//                                        if (!var9.hasNext()) {
-//                                            continue label81;
-//                                        }
-//
-//                                        Entry<String, Map<Long, URL>> serviceEntry = (Entry)var9.next();
-//                                        service = (String)serviceEntry.getKey();
-//                                    } while(!this.getInterface(service).equals(url.getServiceInterface()));
-//                                } while(!"*".equals(group) && !StringUtils.equals(group, this.getGroup(service)));
-//                            } while(!"*".equals(version) && !StringUtils.equals(version, this.getVersion(service)));
-//
-//                            services.remove(service);
-//                        }
-//                    }
-//                }
-//            }
-//
-//
-//        }
-//    }
+
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy()  {
         if(this.registryService !=null) {
             this.registryService.unsubscribe(SUBSCRIBE, this);
         }
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         if(this.registryService != null){
             this.registryService.subscribe(SUBSCRIBE, this);
         }

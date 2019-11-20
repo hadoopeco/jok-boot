@@ -16,7 +16,7 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfigurat
  * @mail: marks@126.com
  * Date: 2019/7/1 11:32
  */
-@CloudApplication(scanBasePackages = {"com.jokls.fsdpl"})
+@CloudApplication(scanBasePackages = {"com.jokls.example"})
 @EnableAutoConfiguration(
         exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class, DataSourceTransactionManagerAutoConfiguration.class}
 )
