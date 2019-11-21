@@ -43,6 +43,7 @@ public class CloudBootstrapConfiguration implements EnvironmentPostProcessor{
     private static final String RPC_APPLICATION_OWNER = "rpc.application.owner";
     private static final String RPC_REGISTRY_ADDRESS = "rpc.registry.address";
     private static final String APPLICATIONCONFIGURATIONPROPERTIES ="applicationConfigurationProperties";
+    public static final String CLOUD_APPLICATION_CONFIG = "cloudApplicationConfig";
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
@@ -111,7 +112,7 @@ public class CloudBootstrapConfiguration implements EnvironmentPostProcessor{
                         map.put(RPC_APPLICATION_OWNER, value);
                         break;
                     case COM_ALIPAY_DTX_SDK_CONNS :
-                        if ("true".equals(value)) {
+                        if (Boolean.TRUE.equals(value)) {
                             alipayDtxSdkConns = true;
                         }
                         break;
@@ -154,10 +155,8 @@ public class CloudBootstrapConfiguration implements EnvironmentPostProcessor{
         }
 
         map.put(COM_ALIPAY_DTX_SDK_CONNS, alipayDtxSdkConns);
-//        map.put("management.health.defaults.enabled", hasHealth);
         map.put(MANAGEMENT_HEALTH_DEFAULTS_ENABLED, hasHealth);
-//        map.put("management.security.enabled", hasHealthSecurity);
         map.put(MANAGEMENT_SECURITY_ENABLED, hasHealthSecurity);
-        environment.getPropertySources().addFirst(new MapPropertySource("cloudApplicationConfig", map));
+        environment.getPropertySources().addFirst(new MapPropertySource(CLOUD_APPLICATION_CONFIG, map));
     }
 }

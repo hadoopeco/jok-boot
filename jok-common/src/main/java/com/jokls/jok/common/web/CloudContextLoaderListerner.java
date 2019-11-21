@@ -1,6 +1,8 @@
 package com.jokls.jok.common.web;
 
 import com.jokls.jok.common.boot.CloudBootstrap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.legacy.context.web.SpringBootContextLoaderListener;
 import org.springframework.context.ApplicationContextInitializer;
@@ -19,6 +21,7 @@ import javax.servlet.ServletContext;
  * Date: 2019/6/12 17:29
  */
 public class CloudContextLoaderListerner extends SpringBootContextLoaderListener {
+    private final Logger logger = LoggerFactory.getLogger(CloudContextLoaderListerner.class);
     private static final String INIT_PARAM_DELIMITERS = ",; \t\n";
 
     public CloudContextLoaderListerner() {
@@ -26,19 +29,15 @@ public class CloudContextLoaderListerner extends SpringBootContextLoaderListener
 
     //初始化webApplication上下文
     public WebApplicationContext initWebApplicationContext(final ServletContext servletContext) {
+        logger.info("initWebApplicationContext start");
         String configLocationParam = servletContext.getInitParameter("contextConfigLocation");
-//        SpringApplicationBuilder builder = new SpringApplicationBuilder((Object[]) StringUtils.tokenizeToStringArray(configLocationParam, ",; \t\n"));
-//        Class<? extends ConfigurableApplicationContext> contextClass = this.determineContextClass(servletContext);
+
 
         SpringApplicationBuilder builder = new SpringApplicationBuilder(StringUtils.tokenizeToStringArray(configLocationParam, INIT_PARAM_DELIMITERS).getClass());
         Class contextClass = this.determineContextClass(servletContext);
 
         builder.contextClass(contextClass);
-        builder.initializers(new ApplicationContextInitializer<GenericWebApplicationContext>() {
-            public void initialize(GenericWebApplicationContext applicationContext) {
-                applicationContext.setServletContext(servletContext);
-            }
-        });
+        builder.initializers((ApplicationContextInitializer<GenericWebApplicationContext>) applicationContext -> applicationContext.setServletContext(servletContext));
 
         String[] args = null;
         String jfile = servletContext.getInitParameter("jfile");
@@ -47,7 +46,7 @@ public class CloudContextLoaderListerner extends SpringBootContextLoaderListener
         }
 
         args = CloudBootstrap.prepare(args);
-        WebApplicationContext context = null;
+        WebApplicationContext context ;
 
 
         if (args != null) {

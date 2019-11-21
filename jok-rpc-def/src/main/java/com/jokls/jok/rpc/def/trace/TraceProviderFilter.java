@@ -4,6 +4,7 @@ import com.jokls.jok.common.exception.BaseException;
 import com.jokls.jok.common.trace.TraceInfo;
 import com.jokls.jok.common.util.*;
 import com.jokls.jok.rpc.async.AsyncFuture;
+import com.jokls.jok.rpc.constant.RpcConstants;
 import com.jokls.jok.rpc.def.asyn.DefaultAsyncFuture;
 import org.apache.dubbo.common.extension.Activate;
 import org.apache.dubbo.monitor.MonitorService;
@@ -19,27 +20,25 @@ import java.util.Map;
 )
 public class TraceProviderFilter implements Filter {
     private static final Logger logger = LoggerFactory.getLogger(TraceProviderFilter.class);
-    public static final String TRACE_TRACE_ID = "trace.traceId";
-    public static final String TRACE_DEPOT_ID = "trace.depotId";
-    public static final String TRACE_SPAN_ID = "trace.spanId";
+
 
     public TraceProviderFilter() {
     }
 
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
         Map<String, String> attachments = invocation.getAttachments();
-        String debugType = attachments.get("invoke.debugType");
+        String debugType = attachments.get(RpcConstants.DEBUGTYPE_KEY);
         Result result;
-        if(!Boolean.TRUE.equals(ConfigUtils.isTraceLog()) && "1".equals(debugType)){
+        if(!Boolean.TRUE.equals(ConfigUtils.isTraceLog()) && RpcConstants.DEBUGTYPE_TRACE.equals(debugType)){
             result = invoker.invoke(invocation);
         }else {
             boolean canTrace = true;
             TraceInfo newTrace = new TraceInfo();
 
             try{
-                String traceId = attachments.get(TRACE_TRACE_ID);
-                String depotId = attachments.get(TRACE_DEPOT_ID);
-                String spanId = attachments.get(TRACE_SPAN_ID);
+                String traceId = attachments.get(RpcConstants.TRACE_ID_KEY);
+                String depotId = attachments.get(RpcConstants.DEPOT_ID_KEY);
+                String spanId = attachments.get(RpcConstants.SPAN_ID_KEY);
 
                 if (StringUtils.isEmpty(traceId)){
                     newTrace.setTraceId(TraceUtils.generatorTraceId());
@@ -69,9 +68,8 @@ public class TraceProviderFilter implements Filter {
                     asyncFuture.setTrace(newTrace);
                 }
 
-                RpcContext.getContext().set("trace.currentTrace", newTrace);
                 if (!StringUtils.isEmpty(debugType)) {
-                    RpcContext.getContext().set("invoke.debugType", debugType);
+                    RpcContext.getContext().set(RpcConstants.DEBUGTYPE_KEY, debugType);
                 }
             } catch (Exception e) {
                 logger.warn("获取全链路信息异常", e);
@@ -95,9 +93,9 @@ public class TraceProviderFilter implements Filter {
                     SpringUtils.getBean(ITraceAsync.class).logProvider(newTrace, invoker, invocation, exception);
                 }
 
-                attachments.put(TRACE_TRACE_ID, newTrace.getTraceId());
-                attachments.put(TRACE_DEPOT_ID, "a0");
-                attachments.put(TRACE_SPAN_ID, newTrace.getSpanId());
+                attachments.put(RpcConstants.TRACE_ID_KEY, newTrace.getTraceId());
+                attachments.put(RpcConstants.DEPOT_ID_KEY, "a0");
+                attachments.put(RpcConstants.SPAN_ID_KEY, newTrace.getSpanId());
             }
 
         }

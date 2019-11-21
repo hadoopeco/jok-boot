@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.UUID;
 
 @Activate(
         group = {"consumer"},
@@ -24,17 +23,16 @@ public class TraceConsumerFilter implements Filter {
 
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
-
+        Map<String, String> attachments = invocation.getAttachments();
         Result  result = invoker.invoke(invocation);
         Map<String, Object> values = RpcContext.getContext().get();
         String debugType = (String)values.get(RpcConstants.DEBUGTYPE_KEY);
 
-        if( Boolean.TRUE.equals(ConfigUtils.isTraceLog() || "1".equals(debugType) )){
+        if( Boolean.TRUE.equals(ConfigUtils.isTraceLog() || RpcConstants.DEBUGTYPE_TRACE.equals(debugType) )){
             TraceInfo trace = (TraceInfo)values.get(RpcConstants.CURRENT_TRACE_KEY);
             if(trace == null){
                 trace = new TraceInfo();
-                trace.setTraceId(UUID.randomUUID().toString());
-                RpcContext.getContext().get().put(RpcConstants.CURRENT_TRACE_KEY, trace);
+                trace.setTraceId(TraceUtils.generatorTraceId());
             }
 
 
@@ -44,7 +42,6 @@ public class TraceConsumerFilter implements Filter {
             TraceInfo newTrace = new TraceInfo();
 
             try{
-                Map<String, String> attachments = invocation.getAttachments();
                 newTrace.setTraceId(trace.getTraceId());
                 newTrace.setDepotId("r0");
                 newTrace.setSpanId(trace.getSpanId() +'.' + trace.atomicSpan());
@@ -53,6 +50,7 @@ public class TraceConsumerFilter implements Filter {
                 attachments.put(RpcConstants.DEPOT_ID_KEY, newTrace.getDepotId());
                 attachments.put(RpcConstants.SPAN_ID_KEY, newTrace.getSpanId());
 
+                values.put(RpcConstants.CURRENT_TRACE_KEY, trace);
                 if(isAsync) {
                     newTrace.setName(ConfigUtils.getAppName());
                     newTrace.setServerName(RpcUtils.getMethodName(invocation));
@@ -83,7 +81,6 @@ public class TraceConsumerFilter implements Filter {
             }
 
         }
-
         return result;
 
     }

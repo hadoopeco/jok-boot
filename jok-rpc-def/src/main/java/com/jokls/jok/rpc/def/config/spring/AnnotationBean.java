@@ -63,7 +63,8 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
-        this.serviceConfigs.stream().filter( s ->  Boolean.TRUE.equals(s.isRegister())).forEach(ServiceConfig::export);
+        //export all service after spring init
+         this.serviceConfigs.stream().forEach(ServiceConfig::export);
     }
 
 
@@ -142,15 +143,10 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
                 }
             }
 
-
+            //add all serviceConfig to list, export all after Application startup
             this.serviceConfigs.add(serviceConfig);
-            if( !Boolean.TRUE.equals(serviceConfig.isRegister())){
-                serviceConfig.export();
-            }
-//            if (!serviceConfig.isRegistryAfterSpring()) {
-//                serviceConfig.export();
-//            }
 
+//            serviceConfig.export();
 
         }
     }
@@ -164,21 +160,21 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
             }
 
             Field[] fields = clazz.getDeclaredFields();
-            Arrays.stream(fields).forEach( f -> {
+            Arrays.stream(fields).forEach( field -> {
                 try {
-                    f.setAccessible(true);
+                    field.setAccessible(true);
 
-                    CloudReference cloudReference = AnnotatedElementUtils.findMergedAnnotation(f, CloudReference.class);
-                    CloudService cloudService = AnnotatedElementUtils.findMergedAnnotation(f.getType(), CloudService.class);
+                    CloudReference cloudReference = AnnotatedElementUtils.findMergedAnnotation(field, CloudReference.class);
+                    CloudService cloudService = AnnotatedElementUtils.findMergedAnnotation(field.getType(), CloudService.class);
 
                     if (cloudReference != null && cloudService != null) {
-                        Object value = this.refer(cloudReference, f.getType());
+                        Object value = this.refer(cloudReference, field.getType());
                         if (value != null) {
-                            f.set(bean, value);
+                            field.set(bean, value);
                         }
                     }
                 }catch (IllegalAccessException e) {
-                    throw new BeanInitializationException("Failed to init remote service reference at filed " + f.getName() + " in class " + bean.getClass().getName(), e);
+                    throw new BeanInitializationException("Failed to init remote service reference at filed " + field.getName() + " in class " + bean.getClass().getName(), e);
                 }
             });
 
@@ -242,23 +238,13 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
 
                 //todo: need change
                 referenceConfig = new ReferenceBean();
-
 //                referenceConfig.setReffilters(sb.toString());
 //                referenceConfig.setRefKey(key);
                 referenceConfig.setInterface(refClass);
                 referenceConfig.setGroup(group);
                 referenceConfig.setVersion(version);
 
-//                if (!"future".equals(reference.callType()) && !"callback".equals(reference.callType())) {
-//                    if ("oneway".equals(reference.callType())) {
-//                        referenceConfig.setReturn(false);
-//                    }
-//                } else {
-//                    referenceConfig.setAsync(true);
-//                    if ("callback".equals(reference.callType())) {
-//                        referenceConfig.setCallbackclass(reference.callbackClass().getName());
-//                    }
-//                }
+
 
                 if (!StringUtils.isEmpty(targetUrl)) {
                     referenceConfig.setUrl(targetUrl);

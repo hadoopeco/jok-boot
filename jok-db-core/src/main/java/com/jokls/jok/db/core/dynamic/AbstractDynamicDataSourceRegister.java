@@ -30,10 +30,7 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractDynamicDataSourceRegister implements ImportBeanDefinitionRegistrar, EnvironmentAware {
     protected static final Logger logger = LoggerFactory.getLogger(AbstractDynamicDataSourceRegister.class);
-    protected static final String DATASOURCE_TYPE_JNDI_WEBLOGIC ="weblogic-jndi";
-    protected static final String DATASOURCE_TYPE_JNDI_TOMCAT = "tomcat-jndi";
-    protected static final String DATASOURCE_TYPE_DBP = "dbp";
-    protected static final String DATASOURCE_TYPE_ZDAL = "zdal";
+
     protected DataSource defaultDataSource;
     protected Map<String, DataSource> customDataSources = new HashMap<>();
     protected static Map<String, String> dsIds = new HashMap<>();
@@ -60,24 +57,14 @@ public abstract class AbstractDynamicDataSourceRegister implements ImportBeanDef
             }
         }
 
-        Iterator<String> iterator = dsPrefixs.iterator();
+        for (String dsPrefix : dsPrefixs) {
 
-        while(true) {
-            String bizkeys;
-            String dsPrefix;
-            String loading;
-            do {
-                Map dsMap;
-                do {
-                    if (!iterator.hasNext()) {
-                        return;
-                    }
+            Map dsMap = propertyResolver.getSubProperties(dsPrefix + ".");
 
-                    dsPrefix = iterator.next();
-                    dsMap = propertyResolver.getSubProperties(dsPrefix + ".");
-                    loading = (String)dsMap.get("loading");
-                } while("false".equals(loading));
+            String loading = (String) dsMap.get("loading");
+            String bizkeys = (String) dsMap.get("bizkeys");
 
+            if ("true".equals(loading) && !StringUtils.isEmpty(bizkeys)) {
                 DataSource ds = this.buildDataSource(dsPrefix, dsMap, environment);
                 if ("default".equals(dsPrefix)) {
                     this.defaultDataSource = ds;
@@ -85,13 +72,11 @@ public abstract class AbstractDynamicDataSourceRegister implements ImportBeanDef
                     this.customDataSources.put(dsPrefix, ds);
                 }
 
-                bizkeys = (String)dsMap.get("bizkeys");
-            } while(StringUtils.isEmpty(bizkeys));
+                String[] keyArray = BIZKEY_SPLIT_PATTERN.split(bizkeys);
 
-            String[] keyArray = BIZKEY_SPLIT_PATTERN.split(bizkeys);
-
-            for(String key : keyArray) {
-                dsIds.put(key, dsPrefix);
+                for (String key : keyArray) {
+                    dsIds.put(key, dsPrefix);
+                }
             }
         }
 
